@@ -3,18 +3,23 @@ package com.media_upload.config;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
-
+/**
+ * Same configuration and connection method will be used in Dev and Cloud for 
+ * connecting to AWS RDS.
+ * 
+ * There is variation in connecting to AWS Secrets manager in Dev and Cloud.
+ * Check getSecretsClient() for additional details.
+ */
 @Configuration
 public class AWSRDSDataSourceConfig {
 
@@ -26,32 +31,34 @@ public class AWSRDSDataSourceConfig {
 	
 	@Value("${spring.datasource.url}")
 	private String url;
+	
+	@Value("${aws.secret-key:}")
+    private String aws_secret_key;
 
-	@Profile("dev")
-	@Bean
-	public DataSource dataSourceForDev() 
-	 {
-		DataSourceBuilder<?> builder = DataSourceBuilder.create();
-	    builder.username(username);
-	    builder.password(password);
-	    builder.url(url);
-	    return builder.build();
+    @Value("${aws.access-key:}")
+    private String aws_access_key;
+    
+    @Autowired
+    Environment env;
+
+	private SecretsManagerClient secretClient = null;
+	
+    SecretsManagerClient getSecretsClient() {
+    	if(secretClient == null) {
+    		if(env.getActiveProfiles()[0].equals("dev")) {
+    			//This is needed for Dev profile env since I will be using Instance profiles approach for Cloud profile
+	    		System.setProperty("aws.accessKeyId", aws_access_key);
+	    		System.setProperty("aws.secretAccessKey", aws_secret_key);
+    		}
+			secretClient = SecretsManagerClient.builder()
+                    .region(Region.AP_SOUTH_1)
+                    .build();
+    	}
+		return secretClient;
 	}
 	
-	@Bean("secretClient")
-	public SecretsManagerClient getSecretsClient() {
-		return SecretsManagerClient.builder()
-                .region(Region.AP_SOUTH_1)
-                .build();
-	}
-	
-	@Autowired
-	@Qualifier("secretClient")
-	private SecretsManagerClient awsSecretClient;
-				
-	@Profile("cloud")
-	@Bean
-	public DataSource dataSourceForCloud() {
+    @Bean
+    DataSource dataSource() {
 		DataSourceBuilder<?> builder = DataSourceBuilder.create();
 	    builder.username(getSecretValue(username));
 		builder.password(getSecretValue(password));
@@ -64,7 +71,7 @@ public class AWSRDSDataSourceConfig {
                 .secretId(secretName)
                 .build();
 
-        GetSecretValueResponse valueResponse = awsSecretClient.getSecretValue(valueRequest);
+        GetSecretValueResponse valueResponse = getSecretsClient().getSecretValue(valueRequest);
         return valueResponse.secretString();
 	}
 }
