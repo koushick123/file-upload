@@ -2,17 +2,22 @@ package com.media_upload.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 
-@Component
+/*
+ * DefaultAWSCredentialsProviderChain will be used for Cloud deployments 
+ * to fetch credentials from EC2 Instance profile to connect to Dynamo DB
+ */
+@Configuration
 public class AmazonDynamodBClientConfig {
 	
     @Value("${aws.secret-key:}")
@@ -31,11 +36,20 @@ public class AmazonDynamodBClientConfig {
 
 	@Profile("dev")
 	@Bean("awsDynamoDBClient")
-    public DynamoDB amazonDynamoDB() {
+    DynamoDB amazonDynamoDBForDev() {
     	AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
     			.withCredentials(new AWSStaticCredentialsProvider(getCredentials()))
     			.withRegion("ap-south-1")
     			.build();
     	return new DynamoDB(client);
     }
+	
+	@Profile("cloud")
+	@Bean("awsDynamoDBClient")
+    DynamoDB amazonDynamoDBForCloud() {
+		AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
+				.withCredentials(new DefaultAWSCredentialsProviderChain())
+				.build();
+		return new DynamoDB(client);
+	}
 }

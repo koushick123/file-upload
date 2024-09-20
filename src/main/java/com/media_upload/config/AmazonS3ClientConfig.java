@@ -2,8 +2,8 @@ package com.media_upload.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -12,7 +12,11 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-@Component
+/*
+ * DefaultAWSCredentialsProviderChain will be used for Cloud deployments 
+ * to fetch credentials from EC2 Instance profile to connect to AWS S3
+ */
+@Configuration
 public class AmazonS3ClientConfig {
 
     @Value("${aws.secret-key:}")
@@ -26,7 +30,7 @@ public class AmazonS3ClientConfig {
 
     @Profile("cloud")
     @Bean("awsS3client")
-    public AmazonS3 s3ClientCloud() {
+    AmazonS3 s3ClientCloud() {
         System.out.println("Build credentials for cloud");
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new DefaultAWSCredentialsProviderChain())
@@ -35,7 +39,7 @@ public class AmazonS3ClientConfig {
 
     @Profile("dev")
     @Bean("awsS3client")
-    public AmazonS3 s3Client() {
+    AmazonS3 s3Client() {
         System.out.println("Build credentials for Dev");
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(getCredentials()))

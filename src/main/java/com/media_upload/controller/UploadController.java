@@ -21,7 +21,7 @@ public class UploadController {
     private UploadService uploadService;
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadFile(@RequestParam MultipartFile file) {
         String uploadId = uploadService.uploadFile(file);
         return ResponseEntity.ok(uploadId);
     }

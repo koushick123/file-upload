@@ -1,0 +1,9 @@
+-- upload.FILE_TABLE definition
+
+CREATE TABLE `file_table` (
+  `FILE_ID` int NOT NULL,
+  `FILE_NAME` varchar(50) NOT NULL,
+  `FILE_UPLOAD_STATUS` varchar(20) NOT NULL,
+  `FILE_UPLOAD_ERR_DESC` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`FILE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

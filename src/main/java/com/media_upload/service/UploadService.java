@@ -73,7 +73,7 @@ public class UploadService {
             item.withString("file-type", fileName.substring(fileName.indexOf(".")+1));
             
             table.putItem(item);
-            LOGGER.info("Successfully uploaded to DynamoDB");
+            LOGGER.info("Successfully saved to DynamoDB");
             
             fileUploadStatus.setFileUploadStatus(UploadStatus.SUCCESS.toString());
         } catch (AmazonServiceException e) {
