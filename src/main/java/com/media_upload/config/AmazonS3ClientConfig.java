@@ -12,6 +12,8 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
+import software.amazon.awssdk.regions.Region;
+
 /*
  * DefaultAWSCredentialsProviderChain will be used for Cloud deployments 
  * to fetch credentials from EC2 Instance profile to connect to AWS S3
@@ -29,7 +31,7 @@ public class AmazonS3ClientConfig {
     private String aws_account_id;
 
     @Profile("cloud")
-    @Bean("awsS3client")
+    @Bean
     AmazonS3 s3ClientCloud() {
         System.out.println("Build credentials for cloud");
         return AmazonS3ClientBuilder.standard()
@@ -38,12 +40,12 @@ public class AmazonS3ClientConfig {
     }
 
     @Profile("dev")
-    @Bean("awsS3client")
+    @Bean
     AmazonS3 s3Client() {
         System.out.println("Build credentials for Dev");
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(getCredentials()))
-                .withRegion("ap-south-1")
+                .withRegion(Region.AP_SOUTH_1.toString())
                 .build();
     }
 

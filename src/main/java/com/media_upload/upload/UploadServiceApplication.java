@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class UploadServiceApplication {
 
 	public static void main(String[] args) {
+		System.setProperty("aws.java.v1.disableDeprecationAnnouncement", "true");
 		SpringApplication.run(UploadServiceApplication.class, args);
 	}
 

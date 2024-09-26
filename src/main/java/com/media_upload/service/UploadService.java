@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,10 +21,14 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.sns.AmazonSNS;
 import com.media_upload.domain.FileInfo;
 import com.media_upload.domain.FileTable;
 import com.media_upload.repository.FileUploadRepository;
 import com.media_upload.uploadstatus.UploadStatus;
+
+import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
 
 @Service
 public class UploadService {
@@ -36,15 +39,16 @@ public class UploadService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);   
 
     @Autowired
-    @Qualifier("awsS3client")
     AmazonS3 s3client;
     
     @Value("${s3.bucket.name}")
     private String s3BucketName; 
     
     @Autowired
-    @Qualifier("awsDynamoDBClient")
     DynamoDB dynamoDB;
+    
+    @Autowired
+    AmazonSNS snsClient;
 
     public String uploadFile(MultipartFile file) {
         String uploadId = UUID.randomUUID().toString();
@@ -86,6 +90,15 @@ public class UploadService {
         }
         fileUploadRepo.save(fileUploadStatus);
         LOGGER.info("File status Updated");
+        //Send Notification
+        
+        PublishRequest request = new PublishRequest()
+        		.withSubject("File Upload Completed")
+                .withMessage("Uploaded File: "+file.getOriginalFilename())
+                .withTopicArn(snsClient.listTopics().getTopics().stream().filter(mytopic -> mytopic.getTopicArn().contains("mail-upload-topic")).findFirst().get().getTopicArn());                
+
+        PublishResult result = snsClient.publish(request);
+        LOGGER.info("SNS Status = "+result);
         return uploadId;
     }
     

@@ -13,6 +13,8 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 
+import software.amazon.awssdk.regions.Region;
+
 /*
  * DefaultAWSCredentialsProviderChain will be used for Cloud deployments 
  * to fetch credentials from EC2 Instance profile to connect to Dynamo DB
@@ -35,17 +37,17 @@ public class AmazonDynamodBClientConfig {
     }
 
 	@Profile("dev")
-	@Bean("awsDynamoDBClient")
+	@Bean
     DynamoDB amazonDynamoDBForDev() {
     	AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
     			.withCredentials(new AWSStaticCredentialsProvider(getCredentials()))
-    			.withRegion("ap-south-1")
+    			.withRegion(Region.AP_SOUTH_1.toString())
     			.build();
     	return new DynamoDB(client);
     }
 	
 	@Profile("cloud")
-	@Bean("awsDynamoDBClient")
+	@Bean
     DynamoDB amazonDynamoDBForCloud() {
 		AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
 				.withCredentials(new DefaultAWSCredentialsProviderChain())
