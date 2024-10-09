@@ -1,5 +1,7 @@
 package com.media_upload.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,10 +32,12 @@ public class AmazonS3ClientConfig {
     @Value("${aws.account-id:}")
     private String aws_account_id;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmazonS3ClientConfig.class); 
+    
     @Profile("cloud")
     @Bean
     AmazonS3 s3ClientCloud() {
-        System.out.println("Build credentials for cloud");
+    	LOGGER.info("Build credentials for cloud");
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new DefaultAWSCredentialsProviderChain())
                 .build();
@@ -42,7 +46,7 @@ public class AmazonS3ClientConfig {
     @Profile("dev")
     @Bean
     AmazonS3 s3Client() {
-        System.out.println("Build credentials for Dev");
+    	LOGGER.info("Build credentials for Dev");
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(getCredentials()))
                 .withRegion(Region.AP_SOUTH_1.toString())
@@ -50,7 +54,7 @@ public class AmazonS3ClientConfig {
     }
 
     private AWSCredentials getCredentials(){
-        System.out.println("Inside getCredentials");
+    	LOGGER.info("Inside getCredentials");
         return new BasicAWSCredentials(aws_access_key,aws_secret_key,aws_account_id);
     }
 }

@@ -1,5 +1,7 @@
 package com.media_upload.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +33,10 @@ public class AmazonDynamodBClientConfig {
     @Value("${aws.account-id:}")
     private String aws_account_id;
     
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmazonDynamodBClientConfig.class); 
+    
 	public AWSCredentials getCredentials(){
-        System.out.println("Inside getCredentials");
+		LOGGER.info("Inside getCredentials");
         return new BasicAWSCredentials(aws_access_key,aws_secret_key,aws_account_id);
     }
 

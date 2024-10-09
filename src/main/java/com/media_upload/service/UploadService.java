@@ -3,8 +3,8 @@ package com.media_upload.service;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
-import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -22,13 +22,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
 import com.media_upload.domain.FileInfo;
 import com.media_upload.domain.FileTable;
 import com.media_upload.repository.FileUploadRepository;
 import com.media_upload.uploadstatus.UploadStatus;
-
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.PublishResult;
 
 @Service
 public class UploadService {
@@ -55,7 +54,7 @@ public class UploadService {
         FileTable fileUploadStatus = new FileTable();
 
         try {
-        	int fileId = RandomGenerator.getDefault().nextInt();
+        	int fileId = new Random().nextInt();
         	String fileName = file.getOriginalFilename();
         	//Update RDS            
             fileUploadStatus.setFileId(Integer.valueOf(fileId));

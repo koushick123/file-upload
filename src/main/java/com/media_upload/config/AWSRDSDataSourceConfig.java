@@ -2,12 +2,16 @@ package com.media_upload.config;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import com.media_upload.service.UploadService;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -41,11 +45,14 @@ public class AWSRDSDataSourceConfig {
     @Autowired
     Environment env;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AWSRDSDataSourceConfig.class);   
+    
 	private SecretsManagerClient secretClient = null;
 	
     SecretsManagerClient getSecretsClient() {
     	if(secretClient == null) {
     		if(env.getActiveProfiles()[0].equals("dev")) {
+    			LOGGER.info("Set access and secret keys for Dev");
     			//This is needed for Dev profile env since I will be using Instance profiles approach for Cloud profile
 	    		System.setProperty("aws.accessKeyId", aws_access_key);
 	    		System.setProperty("aws.secretAccessKey", aws_secret_key);
@@ -59,6 +66,7 @@ public class AWSRDSDataSourceConfig {
 	
     @Bean
     DataSource dataSource() {
+    	LOGGER.info("Create Datasource");
 		DataSourceBuilder<?> builder = DataSourceBuilder.create();
 	    builder.username(getSecretValue(username));
 		builder.password(getSecretValue(password));
@@ -72,6 +80,7 @@ public class AWSRDSDataSourceConfig {
                 .build();
 
         GetSecretValueResponse valueResponse = getSecretsClient().getSecretValue(valueRequest);
+        LOGGER.info("Fetch value for secret = {}",secretName);
         return valueResponse.secretString();
 	}
 }
