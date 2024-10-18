@@ -31,7 +31,7 @@ public class AWSSNSConfig {
     @Value("${aws.account-id:}")
     private String aws_account_id;
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(AmazonS3ClientConfig.class); 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AWSSNSConfig.class); 
 
     private AWSCredentials getCredentials(){
     	LOGGER.info("Inside getCredentials");

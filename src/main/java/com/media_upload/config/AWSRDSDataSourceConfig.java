@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import com.media_upload.service.UploadService;
-
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -49,6 +47,7 @@ public class AWSRDSDataSourceConfig {
     
 	private SecretsManagerClient secretClient = null;
 	
+	@Bean
     SecretsManagerClient getSecretsClient() {
     	if(secretClient == null) {
     		if(env.getActiveProfiles()[0].equals("dev")) {

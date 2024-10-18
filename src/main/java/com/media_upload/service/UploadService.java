@@ -29,6 +29,10 @@ import com.media_upload.domain.FileTable;
 import com.media_upload.repository.FileUploadRepository;
 import com.media_upload.uploadstatus.UploadStatus;
 
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+
 @Service
 public class UploadService {
     
@@ -43,11 +47,17 @@ public class UploadService {
     @Value("${s3.bucket.name}")
     private String s3BucketName; 
     
+    @Value("${sns.file-upload.topic}")
+    private String fileUploadTopicSecret;
+    
     @Autowired
     DynamoDB dynamoDB;
     
     @Autowired
     AmazonSNS snsClient;
+    
+    @Autowired
+    SecretsManagerClient secretClient;
 
     public String uploadFile(MultipartFile file) {
         String uploadId = UUID.randomUUID().toString();
@@ -90,16 +100,26 @@ public class UploadService {
         fileUploadRepo.save(fileUploadStatus);
         LOGGER.info("File status Updated");
         //Send Notification
-        
+                
         PublishRequest request = new PublishRequest()
         		.withSubject("File Upload Completed")
                 .withMessage("Uploaded File: "+file.getOriginalFilename())
-                .withTopicArn(snsClient.listTopics().getTopics().stream().filter(mytopic -> mytopic.getTopicArn().contains("mail-upload-topic")).findFirst().get().getTopicArn());                
+                .withTopicArn(getSecretValue(fileUploadTopicSecret));
 
         PublishResult result = snsClient.publish(request);
         LOGGER.info("SNS Status = "+result);
         return uploadId;
     }
+    
+    private String getSecretValue(String secretName) {
+		GetSecretValueRequest valueRequest = GetSecretValueRequest.builder()
+                .secretId(secretName)
+                .build();
+
+        GetSecretValueResponse valueResponse = secretClient.getSecretValue(valueRequest);
+        LOGGER.info("Fetch value for secret = {}",secretName);
+        return valueResponse.secretString();
+	}
     
     public List<FileInfo> getFiles(){
     	ListObjectsV2Result s3Objects = s3client.listObjectsV2(s3BucketName);
