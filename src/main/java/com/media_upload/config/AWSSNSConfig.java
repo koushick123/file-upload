@@ -11,6 +11,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
@@ -30,6 +31,9 @@ public class AWSSNSConfig {
 
     @Value("${aws.account-id:}")
     private String aws_account_id;
+    
+    @Value("${sns.vpc-endpoint.id}")
+    private String snsVpcEndpoint;
     
     private static final Logger LOGGER = LoggerFactory.getLogger(AWSSNSConfig.class); 
 
@@ -57,7 +61,8 @@ public class AWSSNSConfig {
     	LOGGER.info("Build SNS Client for Cloud");
         AmazonSNS snsClient = AmazonSNSClientBuilder.standard()
                 .withRegion(Regions.AP_SOUTH_1)
-                .withCredentials(new DefaultAWSCredentialsProviderChain())
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(
+                		snsVpcEndpoint, Regions.AP_SOUTH_1.getName()))
                 .build();
     	return snsClient;
     }

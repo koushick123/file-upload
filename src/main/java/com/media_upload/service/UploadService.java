@@ -21,6 +21,9 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
+import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
@@ -28,10 +31,6 @@ import com.media_upload.domain.FileInfo;
 import com.media_upload.domain.FileTable;
 import com.media_upload.repository.FileUploadRepository;
 import com.media_upload.uploadstatus.UploadStatus;
-
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 @Service
 public class UploadService {
@@ -45,7 +44,7 @@ public class UploadService {
     AmazonS3 s3client;
     
     @Value("${s3.bucket.name}")
-    private String s3BucketName; 
+    private String s3BucketName;
     
     @Value("${sns.file-upload.topic}")
     private String fileUploadTopicSecret;
@@ -57,8 +56,8 @@ public class UploadService {
     AmazonSNS snsClient;
     
     @Autowired
-    SecretsManagerClient secretClient;
-
+    AWSSecretsManager secretClient;
+    
     public String uploadFile(MultipartFile file) {
         String uploadId = UUID.randomUUID().toString();
         FileTable fileUploadStatus = new FileTable();
@@ -112,13 +111,12 @@ public class UploadService {
     }
     
     private String getSecretValue(String secretName) {
-		GetSecretValueRequest valueRequest = GetSecretValueRequest.builder()
-                .secretId(secretName)
-                .build();
+		GetSecretValueRequest valueRequest = new GetSecretValueRequest()
+                .withSecretId(secretName);
 
-        GetSecretValueResponse valueResponse = secretClient.getSecretValue(valueRequest);
+        GetSecretValueResult valueResponse = secretClient.getSecretValue(valueRequest);
         LOGGER.info("Fetch value for secret = {}",secretName);
-        return valueResponse.secretString();
+        return valueResponse.getSecretString();
 	}
     
     public List<FileInfo> getFiles(){
