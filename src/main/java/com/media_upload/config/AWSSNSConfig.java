@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Profile;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -60,7 +59,6 @@ public class AWSSNSConfig {
     	// Create SNS client
     	LOGGER.info("Build SNS Client for Cloud");
         AmazonSNS snsClient = AmazonSNSClientBuilder.standard()
-                .withRegion(Regions.AP_SOUTH_1)
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(
                 		snsVpcEndpoint, Regions.AP_SOUTH_1.getName()))
                 .build();
